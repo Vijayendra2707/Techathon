@@ -20,24 +20,6 @@ border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1);}
 
 <body>
 
-<h1>🚦 SafePath AI — Risk Analytics Dashboard</h1>
-
-<div class="card"><h3>Average Risk Score</h3>
-<h2>{{metrics.avg_risk_score}}</h2></div>
-
-<div class="card"><h3>Average Prediction</h3>
-<h2>{{metrics.avg_prediction}}</h2></div>
-
-<div class="card"><h3>High Risk Locations</h3>
-<h2>{{metrics.high_risk_count}}</h2></div>
-
-<div class="card"><h3>Total Accidents</h3>
-<h2>{{metrics.total_accidents}}</h2></div>
-
-<div id="dayChart" class="chart"></div>
-<div id="riskChart" class="chart"></div>
-<div id="roadChart" style="width:98%"></div>
-
 <button onclick="useLiveLocation()">
 📍 Use My Live Location
 </button>
@@ -52,24 +34,8 @@ Destination:
 <button onclick="findRoute()">Find Route</button>
 <div id="map"></div>
 
+</body>
 <script>
-let dayData={{day_counts|tojson}};
-Plotly.newPlot("dayChart",[{
-x:Object.keys(dayData),
-y:Object.values(dayData),
-type:"bar"}]);
-
-let riskData={{risk_bins|tojson}};
-Plotly.newPlot("riskChart",[{
-labels:Object.keys(riskData),
-values:Object.values(riskData),
-type:"pie"}]);
-
-let roadData={{road_risk|tojson}};
-Plotly.newPlot("roadChart",[{
-x:Object.keys(roadData),
-y:Object.values(roadData),
-type:"bar"}]);
 
 // MAP
 const map=L.map('map').setView([18.5204,73.8567],13);
