@@ -81,6 +81,46 @@ navigator.geolocation.getCurrentPosition(
 );
 }
 
+// --------------------
+// ROUTE LEGEND
+// --------------------
+const legend = L.control({ position: "bottomright" });
+
+legend.onAdd = function () {
+
+    const div = L.DomUtil.create("div", "info legend");
+
+    div.innerHTML = `
+        <h4>Route Legend</h4>
+
+        <div style="display:flex;align-items:center;margin-bottom:5px">
+            <span style="
+                width:20px;
+                height:4px;
+                background:blue;
+                display:inline-block;
+                margin-right:8px;">
+            </span>
+            Fastest Route
+        </div>
+
+        <div style="display:flex;align-items:center">
+            <span style="
+                width:20px;
+                height:4px;
+                background:green;
+                display:inline-block;
+                margin-right:8px;">
+            </span>
+            Safest Route
+        </div>
+    `;
+
+    return div;
+};
+
+legend.addTo(map);
+
 async function findRoute(){
 
 if(!userLocation){
