@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 import pandas as pd
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.templating import Jinja2Templates
-
+import joblib
 from utils.geocode import geocode_location
 from utils.routing import get_routes
 from utils.route_risk import compute_route_risk
@@ -40,14 +40,20 @@ def startup_loader():
 
     df = create_features(df)
 
-    # 🔥 BUILD HEATMAP HERE
-    heatmap_cache = build_severity_heatmap(df)
+    # # 🔥 BUILD HEATMAP HERE
+    # heatmap_cache = build_severity_heatmap(df)
 
     negative_df = generate_negative_samples(df)
 
     full_df = pd.concat([df, negative_df])
 
-    model = train_model(full_df)
+    global model
+
+    print("Loading trained model...")
+
+    model = joblib.load("model.pkl")
+
+    print("✅ Model loaded successfully")
 
     print("System Ready ✅")
     # ---------------------------------

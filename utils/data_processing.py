@@ -13,7 +13,7 @@ LAT_MIN, LAT_MAX = 18.40, 18.70
 LON_MIN, LON_MAX = 73.70, 74.05
 
 
-def load_data(path="data/AccidentsBig.csv"):
+def load_data(path="data/pune_cleaned_dataset.csv"):
     df = pd.read_csv(path)
     ROAD_TYPE_MAP = {
     1: "Roundabout",
