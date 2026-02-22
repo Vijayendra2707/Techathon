@@ -1,168 +1,243 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>RoadGaurd AI Routes</title>
+  <meta charset="UTF-8" />
+  <title>RoadGuard AI – Safe Route Planner</title>
 
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <!-- Libraries -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-<link rel="stylesheet"
- href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
-<style>
-body{font-family:Arial;background:#f4f6f9;margin:20px}
-.card{display:inline-block;background:white;padding:20px;margin:10px;
-border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1);}
-.chart{width:48%;display:inline-block;}
-#map{height:500px;margin-top:20px;}
-</style>
+  <style>
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at top, #0b0f1a, #05070d);
+      color: #e5e7eb;
+    }
+
+    h1, h2 {
+      margin: 0 0 8px;
+    }
+
+    .subtitle {
+      color: #9ca3af;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: rgba(20, 24, 45, 0.7);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    .row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    input {
+      flex: 1;
+      background: #0f1325;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 14px;
+      color: white;
+      font-size: 14px;
+    }
+
+    input::placeholder {
+      color: #6b7280;
+    }
+
+    button {
+      border: none;
+      border-radius: 14px;
+      padding: 14px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #3b82f6, #22d3ee);
+      color: white;
+      box-shadow: 0 10px 30px rgba(59,130,246,0.35);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444, #f97316);
+      color: white;
+      box-shadow: 0 10px 30px rgba(239,68,68,0.35);
+    }
+
+    #map {
+      height: 500px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    /* Leaflet Dark Fix */
+    .leaflet-control {
+      background: rgba(15, 18, 35, 0.85) !important;
+      color: white;
+      border-radius: 10px !important;
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 8px;
+    }
+
+    .legend h4 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      color: #e5e7eb;
+    }
+
+    .legend div {
+      font-size: 12px;
+      color: #d1d5db;
+      margin-bottom: 6px;
+    }
+
+    .line {
+      width: 20px;
+      height: 4px;
+      border-radius: 2px;
+      display: inline-block;
+      margin-right: 8px;
+    }
+
+    .fast { background: #3b82f6; }
+    .safe { background: #22c55e; }
+
+  </style>
 </head>
 
 <body>
 
-<button onclick="useLiveLocation()">
-📍 Use My Live Location
-</button>
+  <h1>🧭 Safe Route Planner</h1>
+  <p class="subtitle">
+    AI-powered route recommendations balancing safety, time, and distance
+  </p>
 
-<hr>
-<h2>🧭 Safe Route Planner</h2>
+  <div class="card">
+    <div class="row">
+      <button class="btn-danger" onclick="useLiveLocation()">
+        📍 Use My Live Location
+      </button>
 
-Destination:
-<input id="destination"
-       placeholder="FC Road Pune">
+      <input id="destination" placeholder="Enter destination (e.g. FC Road, Pune)" />
 
-<button onclick="findRoute()">Find Route</button>
-<div id="map"></div>
+      <button class="btn-primary" onclick="findRoute()">
+        Find Safe Route
+      </button>
+    </div>
+  </div>
 
-</body>
-<script>
+  <div class="card">
+    <h2>🗺️ Live Route Map</h2>
+    <div id="map"></div>
+  </div>
 
-// MAP
-const map=L.map('map').setView([18.5204,73.8567],13);
-L.tileLayer(
-'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-).addTo(map);
+  <script>
+    const map = L.map('map').setView([18.5204, 73.8567], 13);
 
-let layers=[];
+    L.tileLayer(
+      'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+    ).addTo(map);
 
-let userLocation = null;
+    let layers = [];
+    let userLocation = null;
 
-// --------------------
-// GET LIVE LOCATION
-// --------------------
-function useLiveLocation(){
+    function useLiveLocation() {
+      if (!navigator.geolocation) {
+        alert("Geolocation not supported");
+        return;
+      }
 
-if(!navigator.geolocation){
-    alert("Geolocation not supported");
-    return;
-}
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          userLocation = {
+            lat: pos.coords.latitude,
+            lon: pos.coords.longitude
+          };
 
-navigator.geolocation.getCurrentPosition(
-    (position)=>{
+          map.setView([userLocation.lat, userLocation.lon], 14);
 
-        userLocation = {
-            lat: position.coords.latitude,
-            lon: position.coords.longitude
-        };
-
-        // move map to user
-        map.setView([userLocation.lat, userLocation.lon], 14);
-
-        // marker
-        L.marker([userLocation.lat, userLocation.lon])
+          L.marker([userLocation.lat, userLocation.lon])
             .addTo(map)
-            .bindPopup("You are here")
+            .bindPopup("📍 You are here")
             .openPopup();
-
-    },
-    ()=>{
-        alert("Location permission denied");
+        },
+        () => alert("Location permission denied")
+      );
     }
-);
-}
 
-// --------------------
-// ROUTE LEGEND
-// --------------------
-const legend = L.control({ position: "bottomright" });
-
-legend.onAdd = function () {
-
-    const div = L.DomUtil.create("div", "info legend");
-
-    div.innerHTML = `
+    const legend = L.control({ position: "bottomright" });
+    legend.onAdd = function () {
+      const div = L.DomUtil.create("div", "legend");
+      div.innerHTML = `
         <h4>Route Legend</h4>
+        <div><span class="line fast"></span> Fastest Route</div>
+        <div><span class="line safe"></span> Safest Route</div>
+      `;
+      return div;
+    };
+    legend.addTo(map);
 
-        <div style="display:flex;align-items:center;margin-bottom:5px">
-            <span style="
-                width:20px;
-                height:4px;
-                background:blue;
-                display:inline-block;
-                margin-right:8px;">
-            </span>
-            Fastest Route
-        </div>
+    async function findRoute() {
+      if (!userLocation) {
+        alert("Click 'Use My Live Location' first");
+        return;
+      }
 
-        <div style="display:flex;align-items:center">
-            <span style="
-                width:20px;
-                height:4px;
-                background:green;
-                display:inline-block;
-                margin-right:8px;">
-            </span>
-            Safest Route
-        </div>
-    `;
+      const destination = document.getElementById("destination").value;
 
-    return div;
-};
+      const res = await fetch("/routes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          destination,
+          start_lat: userLocation.lat,
+          start_lon: userLocation.lon
+        })
+      });
 
-legend.addTo(map);
+      const data = await res.json();
 
-async function findRoute(){
+      layers.forEach(l => map.removeLayer(l));
+      layers = [];
 
-if(!userLocation){
-    alert("Click 'Use My Live Location' first");
-    return;
-}
+      data.routes.forEach(route => {
+        const coords = route.points.map(p => [p[0], p[1]]);
+        let color = route.type === "safest" ? "#22c55e" : "#3b82f6";
 
-const destination =
-    document.getElementById("destination").value;
+        const poly = L.polyline(coords, {
+          color,
+          weight: 6,
+          opacity: 0.9
+        }).addTo(map);
 
-const res = await fetch("/routes",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({
-destination: destination,
-start_lat: userLocation.lat,
-start_lon: userLocation.lon
-})
-});
-
-const data = await res.json();
-
-layers.forEach(l=>map.removeLayer(l));
-layers=[];
-
-data.routes.forEach(route=>{
-
-let coords = route.points.map(p=>[p[0],p[1]]);
-let color="gray";
-
-if(route.type==="fastest") color="blue";
-if(route.type==="safest") color="green";
-
-let poly=L.polyline(coords,{
-color:color,
-weight:6
-}).addTo(map);
-
-layers.push(poly);
-
-});
-}</script>
+        layers.push(poly);
+      });
+    }
+  </script>
 
 </body>
 </html>
