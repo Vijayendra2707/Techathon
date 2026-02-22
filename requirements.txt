@@ -5,3 +5,4 @@ numpy
 scikit-learn
 jinja2
 requests
+folium
