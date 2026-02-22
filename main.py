@@ -19,6 +19,7 @@ from utils.ml_model import train_model
 from utils.map_builder import build_map
 from utils.heatmap import build_severity_heatmap
 
+from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI(title="SafePath AI")
 
 templates = Jinja2Templates(directory="templates")
