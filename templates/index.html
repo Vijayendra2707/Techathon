@@ -2,25 +2,40 @@
 <html>
 <head>
 <title>SafePath AI</title>
+
 <style>
 body { margin:0; font-family:Arial; }
 iframe { width:100%; height:100vh; border:none; }
-h2 {
+
+.header{
  position:absolute;
  z-index:999;
  background:white;
- padding:10px;
+ padding:12px;
  margin:10px;
- border-radius:5px;
+ border-radius:8px;
+ box-shadow:0 3px 10px rgba(0,0,0,0.2);
 }
 </style>
 </head>
 
 <body>
 
-<h2>🚦 SafePath AI — Pune Risk Intelligence</h2>
+<div class="header">
+🚦 SafePath AI — Pune Risk Intelligence
+<button onclick="toggleHeat()">Toggle Heatmap</button>
+</div>
 
-<iframe src="/map"></iframe>
+<iframe id="mapFrame" src="/map"></iframe>
+
+<script>
+function toggleHeat(){
+  const frame=document.getElementById("mapFrame").contentWindow;
+  if(frame.toggleHeatmap){
+      frame.toggleHeatmap();
+  }
+}
+</script>
 
 </body>
 </html>

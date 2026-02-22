@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<link rel="stylesheet"
+ href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+
+<style>
+#map { height:100vh; }
+</style>
+
+</head>
+
+<body>
+
+<div id="map"></div>
+
+<script>
+
+// ---------------- MAP INIT ----------------
+var map = L.map('map').setView([18.5204,73.8567],12);
+
+L.tileLayer(
+'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+{ attribution:'OSM' }
+).addTo(map);
+
+let heatLayer;
+
+
+// ---------------- LOAD HEATMAP ----------------
+fetch("/heatmap-data")
+.then(res => res.json())
+.then(result => {
+
+    heatLayer = L.heatLayer(result.data,{
+        radius:20,
+        blur:30,
+        maxZoom:15,
+        minOpacity:0.35,
+        gradient:{
+            0.2:'blue',
+            0.4:'lime',
+            0.6:'yellow',
+            0.8:'orange',
+            1:'red'
+        }
+    });
+
+    heatLayer.addTo(map);
+});
+
+
+// ---------------- TOGGLE FROM IFRAME PARENT ----------------
+function toggleHeatmap(){
+
+    if(!heatLayer) return;
+
+    if(map.hasLayer(heatLayer)){
+        map.removeLayer(heatLayer);
+    }else{
+        heatLayer.addTo(map);
+    }
+}
+
+</script>
+
+</body>
+</html>

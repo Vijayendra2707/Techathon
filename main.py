@@ -17,17 +17,21 @@ from utils.feature_engineering import (
 )
 from utils.ml_model import train_model
 from utils.map_builder import build_map
-
+from utils.heatmap import build_severity_heatmap
 
 app = FastAPI(title="SafePath AI")
 
 templates = Jinja2Templates(directory="templates")
 
+heatmap_cache = None
 # -------------------------------
 # LOAD DATA ON STARTUP (ONLY ONCE)
 # -------------------------------
 @app.on_event("startup")
 def startup_loader():
+
+    
+    global model, heatmap_cache
 
     print("Preparing ML system...")
 
@@ -35,12 +39,16 @@ def startup_loader():
 
     df = create_features(df)
 
+    # 🔥 BUILD HEATMAP HERE
+    heatmap_cache = build_severity_heatmap(df)
+
     negative_df = generate_negative_samples(df)
 
     full_df = pd.concat([df, negative_df])
 
     model = train_model(full_df)
 
+    print("System Ready ✅")
     # ---------------------------------
 # Create ML risk prediction column
 # ---------------------------------
@@ -128,3 +136,7 @@ async def find_routes(data: dict):
         )
 
     return {"routes": selected_routes}
+
+@app.get("/heatmap-data")
+def get_heatmap():
+    return {"data": heatmap_cache}
